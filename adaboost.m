@@ -1,4 +1,4 @@
-function [estimateclasstotal,model]=Adaboost2(mode,datafeatures,dataclass_or_model,itt)
+function [estimateclasstotal,model]=adaboost(mode,datafeatures,dataclass_or_model,itt)
 
 switch(mode)
     case 'train'
