@@ -1,42 +1,50 @@
-% Here we try to use the Milstein discretization instead of the Euler's.
+# We want to evaluate the price of a Bermudan put option under Heston model
 clear 
 warning off
 
+# set the random seed
 rng(1);
+
+# number of simulated paths for both training set and testing set
 n = 1e5;
+
+# number of monitoring points. 
 N = 11;
+
+# We divide each time interval (with length 1/(NN-1)) into 5 sub-intervals, to reduce discrete error in the simmulation
 multi = 5;
 NN = 1 + multi*(N-1);
 
+# degree of basis functions, k1 for asset price and k2 for its volatility
 k1 = 2;
 k2 = 2;
 k = k1+k2+1;
 
-K = 10;
-F0 = 9;
-T = 0.25;
-r = 0.1;
-kappa = 5;
-sigma = 0.9;
-theta = 0.16;
-V0 = 0.0625;
-rho = 0.1;
-q = 0;
-mu = r-q;
+K = 10; # strike price
+F0 = 9; # spot price
+T = 0.25; # time to maturity
+r = 0.1; # riskfree interest rate
+kappa = 5; # reverting rate of the volatility process
+sigma = 0.9; # volatility of volatility
+theta = 0.16; # long-tern mean of volatility
+V0 = 0.0625; # initial volatility
+rho = 0.1; # correlation of the two Brownian motions
+q = 0; # dividend yield
+mu = r-q; # drift rate
 
-deltaT = T/(N-1);
-deltaTT = deltaT/multi;
-disc = exp(-r*deltaT);
+deltaT = T/(N-1); # length of each time interval
+deltaTT = deltaT/multi; # length of each sub-interval
+disc = exp(-r*deltaT); # discount factor
 
-%Euler Discretization invovles a discrete error, which can be reduced by
-%increasing the time stamps when generating the price matrix
 tic
 
-FF = zeros(n,NN);
-FF(:,1) = ones(n,1)*F0;
+FF = zeros(n,NN); 
+FF(:,1) = ones(n,1)*F0; # asset price matrix
 VV1 = zeros(n,N);
-VV1(:,1) = ones(n,1)*V0;
+VV1(:,1) = ones(n,1)*V0; # volatility matrix
 
+# simualte the training set using Milstein discretization. 
+# To make sure the volatility is non-negative, we use the full-truncation scheme.
 for j = 2 : NN
     W1 = randn(n,1) * sqrt(deltaTT); 
     W2 = randn(n,1) * sqrt(deltaTT); 
@@ -47,10 +55,13 @@ for j = 2 : NN
     j;
 end
 
+# I can not recall why I first use FF than replace it F.
 F = FF(:,1:multi:NN);
 V1 = VV1(:,1:multi:NN);
+
 clear FF VV1
 
+# do the same thing for the tesing set
 FF2 = zeros(n,NN);
 FF2(:,1) = ones(n,1)*F0;
 VV2 = zeros(n,N);
@@ -72,8 +83,7 @@ V2 = VV2(:,1:multi:NN);
 clear FF2 VV2
 
 toc
-%We are supposed to apply some special treatment to the variance process
-%when it hits 0. Here we use the full-truncation scheme.
+
 
 Payoff =max(0,-F(:,N)+K);
 C = mean(exp(-r*T)*Payoff); % European put option price calculated under Heston Model
