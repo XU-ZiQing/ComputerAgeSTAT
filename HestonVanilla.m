@@ -1,7 +1,7 @@
 function price = HestonVanilla()
 
 rng(1);
-n = 1e4;
+n = 1e5;
 N = 11;
 multi = 5;
 NN = 1 + multi*(N-1);
